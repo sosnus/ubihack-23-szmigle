@@ -18,3 +18,4 @@ Corporations
 
 ## How to solve this problem?
 * giving out loyalty points for making green decisions on energy consumption
+* gamification - 
