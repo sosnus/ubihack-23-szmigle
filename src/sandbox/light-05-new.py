@@ -15,7 +15,7 @@ def init():
     connect_to_wifi(wlan, ssid, password)
     
     # sun_val, bulb_val, knob_sun, knob_bulb):
-def send():
+def send(ledBulb256,ledSun256, sensor256, knobsun256, knobcfg256):
     payload = [
         {
             "variable": "knobsun256",
@@ -102,7 +102,7 @@ if __name__ == "__main__":
             #sun_val, red_val, light_ref_val, light_control_val = read()
         elif timestamp - prev_send > 100:
             prev_send = timestamp
-            send()
+            send(ledBulb256,ledSun256, sensor256, knobsun256, knobcfg256)
             # send(sun_val, red_val, light_ref_val, light_control_val)
             print("knobsun256 = ", knobcfg256)
             print("knobcfg256 = ", knobcfg256)
