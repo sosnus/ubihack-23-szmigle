@@ -71,7 +71,7 @@ ledBulb100 = 0
 def u16to100(x):
     return (x/65535.0)*100
 
-def i100toU16(x)
+def i100toU16(x):
     return x*(65535.0*100)
 
 def convert(x, in_min, in_max, out_min, out_max):
