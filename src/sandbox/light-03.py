@@ -66,8 +66,16 @@ red_val = 0
 light_ref_val = 0
 light_control_val = 0
 
+def u16to100(x):
+    return (x/65535.0)*100
+
+def i100toU16(x):
+    return x*(65535.0*100)
+
 def convert(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+
 
 def read():
     light_ref = adc0.read_u16()

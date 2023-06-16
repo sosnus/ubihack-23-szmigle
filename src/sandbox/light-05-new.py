@@ -1,6 +1,6 @@
 import time
 import network
-import uasyncio
+# import uasyncio
 import urequests as requests
 from machine import Timer, Pin, PWM
 
@@ -14,23 +14,28 @@ def init():
     wlan = network.WLAN(network.STA_IF)
     connect_to_wifi(wlan, ssid, password)
     
-def send(sun_val, bulb_val, knob_sun, knob_bulb):
+    # sun_val, bulb_val, knob_sun, knob_bulb):
+def send():
     payload = [
         {
-            "variable": "sun_emulator",
-            "value": sun_val
+            "variable": "knobsun256",
+            "value": knobsun256
         },
         {
-            "variable": "bulb_emulator",
-            "value":bulb_val
+            "variable": "knobcfg256",
+            "value":knobcfg256
         },
         {
-            "variable": "knob_sun",
-            "value": knob_sun
+            "variable": "sensor256",
+            "value": sensor256
         },
         {
-            "variable": "knob_bulb",
-            "value": knob_bulb
+            "variable": "ledSun256",
+            "value": ledSun256
+        },
+        {
+            "variable": "ledBulb256",
+            "value": ledBulb256
         }
     ]
     headers = {
@@ -58,52 +63,31 @@ adc2 = machine.ADC(2)
 led = PWM(Pin(2))
 sun = PWM(Pin(12))
 
-
-knobsun100 = 0
-knobcfg100 = 0
-sensor100 = 0
-ledSun100 = 0
-ledBulb100 = 0
-# red_val = 0
-# light_ref_val = 0
-# light_control_val = 0
-
-def u16to100(x):
-    return (x/65535.0)*100
-
-def i100toU16(x):
-    return x*(65535.0*100)
-
-def convert(x, in_min, in_max, out_min, out_max):
-    return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+knobsun256 = 0
+knobcfg256 = 0
+sensor256 = 0
+ledSun256 = 0
+ledBulb256 = 0
 
 
 
-def read():
-    light_ref = adc0.read_u16()
-    light_control = adc1.read_u16()
-    knob_adc = adc2.read_u16()
-            
-    knob = min(100, round(knob_adc/65535.0*1000 , 2))
+def readAndSet(ledBulb256,ledSun256, sensor256, knobsun256, knobcfg256):
+    # global ledBulb256
+    sensor256 = adc0.read_u16() / 256
+    knobsun256 = adc1.read_u16() / 256
+    knobcfg256 = adc2.read_u16() / 256
+
     
-    sun_val = int(convert(knob, 3, 100, 0, 65534))
-    red_val = int(convert(light_ref, 20000, 65534, 65534, 0))
-    light_ref_val = int(convert(light_ref, 0, 65534,  0, 100))
-    light_control_val = int(convert(light_control, 0, 65534,  0, 100))
-
-    """
-    time.sleep_ms(500)
-    print("knob              =", knob)
-    print("light_ref_val     =", light_ref_val)
-    print("light_control_val =", light_control_val)
-    print("sun_val           =", sun_val)
-    print("red_val           =", red_val)
-    """
+    sun.duty_u16(int(knobsun256*256))
+    if(knobcfg256 < sensor256):
+        ledBulb256 = ledBulb256 + 1
+    else:
+        ledBulb256 = ledBulb256 - 1
     
-    sun.duty_u16(sun_val)
-    sun2.duty_u16(sun_val)
-    red.duty_u16(red_val)
-    return (sun_val, red_val, light_ref_val, light_control_val)
+    # sun.duty_u16(knobsun256*256)
+    led.duty_u16(int(ledBulb256*256))
+    # return (sun_val, red_val, light_ref_val, light_control_val)
+    return (ledBulb256, ledSun256,sensor256, knobsun256, knobcfg256)
 
 if __name__ == "__main__":
     prev_read = time.ticks_ms()
@@ -114,14 +98,17 @@ if __name__ == "__main__":
 
         if timestamp - prev_read > 10:
             prev_read = timestamp
-            sun_val, red_val, light_ref_val, light_control_val = read()
-        elif timestamp - prev_send > 3_000:
+            ledBulb256, ledSun256, sensor256, knobsun256, knobcfg256 = readAndSet(ledBulb256, ledSun256, sensor256, knobsun256, knobcfg256)
+            #sun_val, red_val, light_ref_val, light_control_val = read()
+        elif timestamp - prev_send > 100:
             prev_send = timestamp
-            send(sun_val, red_val, light_ref_val, light_control_val)
-            print("knob              =", knob)
-            print("light_ref_val     =", light_ref_val)
-            print("light_control_val =", light_control_val)
-            print("sun_val           =", sun_val)
-            print("red_val           =", red_val)
+            send()
+            # send(sun_val, red_val, light_ref_val, light_control_val)
+            print("knobsun256 = ", knobcfg256)
+            print("knobcfg256 = ", knobcfg256)
+            print("sensor256  = ", sensor256)
+            print("ledSun256  = ", ledSun256)
+            print("ledBulb256 = ", ledBulb256)
+
 
 
